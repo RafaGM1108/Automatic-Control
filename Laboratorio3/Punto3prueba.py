@@ -3,11 +3,6 @@ import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 
-epsilon_symbol = "ε"  # Usar el símbolo epsilon (ε) en la interfaz
-
-# Valor epsilon muy pequeño para cálculos internos
-epsilon_value = 1e-9  
-
 def fill(n):
     matrix = []
     for i in range(n):
@@ -25,32 +20,30 @@ def cambio_signo(n1, n2):
     else:
         return False
 
+import sympy as sp
+
 def routh_criterion(coeff):
     n = len(coeff)
     matrix = fill(n)
     m = len(matrix[0])
     curr = 0
+    epsilon_symbol = sp.symbols('ε')  # Símbolo epsilon
+    
     for i in range(m):
         for j in range(2):
             if curr < n:
-                if curr == 0 and coeff[curr] == 0:
-                    matrix[j][i] = epsilon_symbol  # Mostrar ε en la interfaz
-                else:
-                    matrix[j][i] = coeff[curr]
+                matrix[j][i] = coeff[curr]
                 curr += 1
+                
     for i in range(2, n):
         pivote = matrix[i - 1][0]
         for j in range(m):
             if j < m - 1:
                 if pivote == 0:
-                    # Reemplazar solo el elemento en la matriz con ε en lugar de toda la fila
-                    matrix[i][j] = epsilon_symbol  # Mostrar ε en la interfaz
+                    matrix[i][0] = epsilon_symbol  # Usar símbolo epsilon en lugar de cadena "E"
                 else:
                     matrix[i][j] = ((matrix[i - 1][0] * matrix[i - 2][j + 1]) - (matrix[i - 2][0] * matrix[i - 1][j + 1])) / pivote
-        # Asignar epsilon_value a pivote para cálculos internos
-        if pivote == epsilon_symbol:
-            pivote = epsilon_value
-    
+
     cambio = 0
     ant = matrix[0][0]
     unstable_roots = []  # Almacenar raíces inestables
@@ -97,18 +90,24 @@ if coeff_str:
         
         # Calcular y graficar las raíces
         roots = sp.solve(equation, s)
-        
+
         if roots:
             roots = [complex(root.evalf()) for root in roots]
             real_part = [root.real for root in roots]
             imag_part = [root.imag for root in roots]
             
+            # Mostrar las raíces en la interfaz
+            st.write("Raíces calculadas:")
+            for root in roots:
+                st.write(root)
+            
+            # Graficar raíces
             plt.figure(figsize=(8, 6))
             plt.scatter(real_part, imag_part, marker='x', color='red', label='Raíces')
             plt.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
             plt.axvline(x=0, color='k', linestyle='--', linewidth=0.7)
-            plt.xlabel('Parte Real')
-            plt.ylabel('Parte Imaginaria')
+            plt.xlabel('σ')
+            plt.ylabel('jω')
             plt.title('Gráfico de Raíces en el Plano Complejo')
             plt.legend()
             
@@ -118,6 +117,32 @@ if coeff_str:
                 st.write("Las raíces inestables son:")
                 for root in unstable_roots:
                     st.write(root)
+            
+            # Calcular y graficar el Lugar de las Raíces en el mismo gráfico
+            plt.figure(figsize=(8, 6))
+            K_values = np.linspace(0, 100, 1000)  # Valores de ganancia K
+            locus = []  # Almacenar las raíces en el Lugar de las Raíces
+            
+            for K in K_values:
+                char_eq = equation.subs({s: K})
+                roots_K = sp.solve(char_eq, s)
+                roots_K = [complex(root.evalf()) for root in roots_K]
+                locus.extend(roots_K)
+            
+            locus_real = [root.real for root in locus]
+            locus_imag = [root.imag for root in locus]
+            
+            # Graficar el Lugar de las Raíces
+            plt.plot(locus_real, locus_imag, linestyle='--', color='blue', label='Lugar de las Raíces')
+            
+            plt.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
+            plt.axvline(x=0, color='k', linestyle='--', linewidth=0.7)
+            plt.xlabel('σ')
+            plt.ylabel('jω')
+            plt.title('Lugar de las Raíces en el Plano Complejo')
+            plt.legend()
+            
+            st.pyplot(plt)
         else:
             st.write("La ecuación no tiene raíces reales en el plano complejo.")
     except Exception as e:
