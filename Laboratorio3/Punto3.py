@@ -117,32 +117,6 @@ if coeff_str:
                 st.write("Las raíces inestables son:")
                 for root in unstable_roots:
                     st.write(root)
-            
-            # Calcular y graficar el Lugar de las Raíces en el mismo gráfico
-            plt.figure(figsize=(8, 6))
-            K_values = np.linspace(0, 100, 1000)  # Valores de ganancia K
-            locus = []  # Almacenar las raíces en el Lugar de las Raíces
-            
-            for K in K_values:
-                char_eq = equation.subs({s: K})
-                roots_K = sp.solve(char_eq, s)
-                roots_K = [complex(root.evalf()) for root in roots_K]
-                locus.extend(roots_K)
-            
-            locus_real = [root.real for root in locus]
-            locus_imag = [root.imag for root in locus]
-            
-            # Graficar el Lugar de las Raíces
-            plt.plot(locus_real, locus_imag, linestyle='--', color='blue', label='Lugar de las Raíces')
-            
-            plt.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
-            plt.axvline(x=0, color='k', linestyle='--', linewidth=0.7)
-            plt.xlabel('σ')
-            plt.ylabel('jω')
-            plt.title('Lugar de las Raíces en el Plano Complejo')
-            plt.legend()
-            
-            st.pyplot(plt)
         else:
             st.write("La ecuación no tiene raíces reales en el plano complejo.")
     except Exception as e:
