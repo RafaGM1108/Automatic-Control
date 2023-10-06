@@ -2,6 +2,7 @@ import streamlit as st
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
+from tbcontrol.symbolic import routh
 
 def fill(n):
     matrix = []
@@ -19,8 +20,6 @@ def cambio_signo(n1, n2):
         return True
     else:
         return False
-
-import sympy as sp
 
 def routh_criterion(coeff):
     n = len(coeff)
@@ -62,62 +61,73 @@ def routh_criterion(coeff):
     
     return matrix, cambio, unstable_roots
 
-st.title("Criterio de Routh-Hurwitz y Gráfico de Raíces")
+st.title("Calculadora de Routh-Hurwitz y Gráfico de Raíces")
 
+# Ingreso de coeficientes del polinomio
 coeff_str = st.text_input("Ingresa los coeficientes del polinomio separados por coma:")
+
+# Ingreso de valor de 'k'
+k_input = st.text_input("Ingresa el valor de 'k' (si es necesario):")
+
+s = sp.Symbol('s')
 
 if coeff_str:
     try:
-        coeff = [float(x) for x in coeff_str.split(",")]
-        n = len(coeff)
-        s = sp.symbols('s')
-        equation = sum(coeff[i] * s**(n - i - 1) for i in range(n))
-        
-        matrix, cambio, unstable_roots = routh_criterion(coeff)
-        
+        # Parsear los coeficientes ingresados por el usuario
+        coeff = [sp.S(x.strip()) if x != 'k' else 'k' for x in coeff_str.split(",")]
+
+        # Calcular la matriz de Routh-Hurwitz
+        routh_matrix, cambios, unstable_roots = routh_criterion(coeff)
+
+        # Mostrar la matriz de Routh-Hurwitz como una tabla
         st.write("Matriz de Routh-Hurwitz:")
 
-        st.table(matrix)
+        st.table(routh_matrix)
         
-        st.write(f"Cambios de signo: {cambio}")
-        
-        if cambio == 0 and len(unstable_roots) == 0:
-            st.write("El sistema es estable.")
-        elif cambio > 0:
-            st.write(f"El sistema es inestable y tiene {cambio} raíces inestables.")
-        elif len(unstable_roots) > 0:
-            st.write(f"El sistema es estable con {len(unstable_roots)} raíces en el eje imaginario.")
-        
-        # Calcular y graficar las raíces
-        roots = sp.solve(equation, s)
+        st.write(f"Cambios de signo en la primera columna: {cambios}")
 
-        if roots:
-            roots = [complex(root.evalf()) for root in roots]
-            real_part = [root.real for root in roots]
-            imag_part = [root.imag for root in roots]
-            
-            # Mostrar las raíces en la interfaz
-            st.write("Raíces calculadas:")
-            for root in roots:
-                st.write(root)
-            
-            # Graficar raíces
-            plt.figure(figsize=(8, 6))
-            plt.scatter(real_part, imag_part, marker='x', color='red', label='Raíces')
-            plt.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
-            plt.axvline(x=0, color='k', linestyle='--', linewidth=0.7)
-            plt.xlabel('σ')
-            plt.ylabel('jω')
-            plt.title('Gráfico de Raíces en el Plano Complejo')
-            plt.legend()
-            
-            st.pyplot(plt)
-            
-            if unstable_roots:
-                st.write("Las raíces inestables son:")
-                for root in unstable_roots:
-                    st.write(root)
+        if k_input:
+            try:
+                k_value = float(k_input)
+                coeff_with_k = [k_value if coeff == 'k' else coeff for coeff in coeff]
+                equation = sp.Poly(coeff_with_k, s)
+                roots = sp.solve(equation, s)
+
+                if roots:
+                    roots = [complex(root.evalf()) for root in roots]
+                    real_part = [root.real for root in roots]
+                    imag_part = [root.imag for root in roots]
+
+                    # Mostrar las raíces en la interfaz
+                    st.write("Raíces calculadas:")
+                    for root in roots:
+                        st.write(root)
+
+                    # Graficar raíces
+                    plt.figure(figsize=(8, 6))
+                    plt.scatter(real_part, imag_part, marker='x', color='red', label='Raíces')
+                    plt.axhline(y=0, color='k', linestyle='--', linewidth=0.7)
+                    plt.axvline(x=0, color='k', linestyle='--', linewidth=0.7)
+                    plt.xlabel('σ')
+                    plt.ylabel('jω')
+                    plt.title('Gráfico de Raíces en el Plano Complejo')
+                    plt.legend()
+
+                    st.pyplot(plt)
+
+                    if cambios == 0 and len(unstable_roots) == 0:
+                        st.write("El sistema es críticamente estable y no hay raíces con parte real positiva.")
+                    elif cambios > 0:
+                        st.write(f"El sistema es inestable y tiene {cambios} raíces inestables con parte real positiva.")
+                    elif len(unstable_roots) > 0:
+                        st.write(f"El sistema es estable con {len(unstable_roots)} raíces en el eje imaginario.")
+
+                else:
+                    st.write("La ecuación no tiene raíces reales en el plano complejo.")
+            except ValueError:
+                st.write("El valor ingresado para 'k' no es válido.")
         else:
-            st.write("La ecuación no tiene raíces reales en el plano complejo.")
+            st.write("Ingresa un valor para 'k' si es necesario.")
     except Exception as e:
         st.write("Ocurrió un error al procesar los coeficientes. Asegúrate de que estén en el formato correcto separados por coma.")
+
