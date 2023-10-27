@@ -82,7 +82,7 @@ if coeff_str:
         st.write(f"Cambios de signo: {cambio}")
         
         if cambio == 0 and len(unstable_roots) == 0:
-            st.write("El sistema es críticamente estable.")
+            st.write("El sistema es estable.")
         elif cambio > 0:
             st.write(f"El sistema es inestable y tiene {cambio} raíces inestables.")
         elif len(unstable_roots) > 0:
