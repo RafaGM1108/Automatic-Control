@@ -1,29 +1,35 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import streamlit as st 
+import streamlit as st
 
+st.title("Visualizador de Diagrama de Bode")
 
-archivo_csv = 'example_P2.csv'
+# Widget para cargar un archivo CSV
+uploaded_file = st.file_uploader("Cargar un archivo CSV", type=["csv"])
 
-dataframe = pd.read_csv(archivo_csv)
+if uploaded_file is not None:
+    try:
+        dataframe = pd.read_csv(uploaded_file)
 
-magnitud = dataframe['Mag'].values
-fase = dataframe['Phase'].values
-frecuencia = dataframe['W'].values
+        magnitud = dataframe['Mag'].values
+        fase = dataframe['Phase'].values
+        frecuencia = dataframe['W'].values
 
-plt.figure(figsize=(12, 6))
-plt.subplot(2, 1, 1)
-plt.semilogx(frecuencia, magnitud)
-plt.title('Diagrama de Bode - Magnitud')
-plt.xlabel('Frecuencia [Hz]')
-plt.ylabel('Magnitud [dB]')
+        st.subheader("Diagrama de Bode - Magnitud")
+        plt.figure(figsize=(12, 6))
+        plt.semilogx(frecuencia, magnitud)
+        plt.title('Diagrama de Bode - Magnitud')
+        plt.xlabel('Frecuencia [Hz]')
+        plt.ylabel('Magnitud [dB]')
+        st.pyplot(plt)
 
-plt.subplot(2, 1, 2)
-plt.semilogx(frecuencia, fase)
-plt.title('Diagrama de Bode - Fase')
-plt.xlabel('Frecuencia [Hz]')
-plt.ylabel('Fase [grados]')
+        st.subheader("Diagrama de Bode - Fase")
+        plt.figure(figsize=(12, 6))
+        plt.semilogx(frecuencia, fase)
+        plt.title('Diagrama de Bode - Fase')
+        plt.xlabel('Frecuencia [Hz]')
+        plt.ylabel('Fase [grados]')
+        st.pyplot(plt)
 
-plt.tight_layout()
-plt.show()
+    except Exception as e:
+        st.error("Ocurrió un error al cargar y procesar el archivo CSV. Asegúrate de que el archivo sea válido.")
