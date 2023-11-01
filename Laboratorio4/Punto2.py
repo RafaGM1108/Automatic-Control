@@ -5,7 +5,7 @@ import numpy as np
 import scipy.signal as signal
 
 # Streamlit app title
-st.title('Bode Diagram Plotter')
+st.title('Punto 2 Laboratorio 4')
 
 # File upload section
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
