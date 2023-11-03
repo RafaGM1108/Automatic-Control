@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as signal
+import control as ct
 
 # Streamlit app title
 st.title('Punto 2-Laboratorio 4')
@@ -34,6 +35,9 @@ if uploaded_file is not None:
         ax2.set_xlabel('Frecuencia (Hz)')
         ax2.set_ylabel('Fase (grados)')
         ax2.grid()
+        
+        
+        
 
         A = None
         ancho_de_banda = None
@@ -41,41 +45,74 @@ if uploaded_file is not None:
         margen_de_ganancia = None
         pico = None
         frecuencia_de_resonancia = None
-                
-        cutoff_indices = np.where(magnitud_dB <= 0.707)[0]
-        if len(cutoff_indices) > 0:
-            first_index = cutoff_indices[0]
-            A = frecuencia[first_index]
-
-            last_index = cutoff_indices[-1]
-
-            ancho_de_banda = frecuencia[last_index] - frecuencia[first_index]
-
-        st.write("Frecuencia de corte:", A)
-        st.write("Ancho de Banda:", ancho_de_banda)
-
-        crossing_indices = np.where(np.diff(np.signbit(magnitud_dB)))[0]
-        if len(crossing_indices) > 0:
-    
-            gain_margin_index = crossing_indices[0]
-            margen_de_ganancia = -magnitud_dB[gain_margin_index]
-
-        phase_crossing_indices = np.where(np.diff(np.signbit(fase_grados + 180)))[0]
-        if len(phase_crossing_indices) > 0:
-            
-            phase_margin_index = phase_crossing_indices[0]
-            margen_de_fase = -180 - fase_grados[phase_margin_index]
-
-        st.write("Margen de Fase:", margen_de_fase)
-        st.write("Margen de Ganancia:", margen_de_ganancia)
         
-        peak_magnitude_index = np.argmax(magnitud_dB)
-        if peak_magnitude_index is not None:
-            
-            pico = magnitud_dB[peak_magnitude_index]
-            frecuencia_de_resonancia = frecuencia[peak_magnitude_index]
+        
+        max_magnitude = max(magnitud_dB) 
+        resonance_frequency = frecuencia[magnitud_dB.tolist().index(max_magnitude)]
+        
+        
+        # Calcular el valor de -3 dB por debajo del máximo
+        cutoff_magnitude = max_magnitude - 3.0 #! Calculo de los 3 decibeles
 
-        st.write("Pico:", pico)
-        st.write("Frecuencia de Resonancia:", frecuencia_de_resonancia)
+        # Buscar la frecuencia de corte (frecuencia donde la magnitud cae a -3 dB por debajo del máximo)
+        for i in range(len(magnitud_dB)):
+            if magnitud_dB[i] <= cutoff_magnitude:
+                cutoff_frequency = frecuencia[i]
+            break
+    
+            
+        resonance_phase = fase_grados[magnitud_dB.tolist().index(max_magnitude)]
+
+        phase_margin = 180 - resonance_phase
+        
+        index_minus_180_deg = None
+        for i, phase in enumerate(fase_grados):
+            if phase <= -180:
+                index_minus_180_deg = i
+            break
+
+
+
+        if index_minus_180_deg is not None:
+            gain_at_minus_180_deg = 10 ** (magnitud_dB[index_minus_180_deg] / 20)  # Convertir de dB a ganancia lineal
+            st.write("Margen de ganancia: {} dB".format(gain_at_minus_180_deg))
+        else:
+            st.write("No se encontró un margen de ganancia de -180 grados en el rango de frecuencias proporcionado.")
+            
+            
+            
+        lower_frequency = None
+        upper_frequency = None
+
+        # Buscar la frecuencia donde la magnitud cruza -3 dB por debajo del máximo
+        for i in range(len(magnitud_dB)):
+            if magnitud_dB[i] >= cutoff_magnitude:
+                if lower_frequency is None:
+                    lower_frequency = frecuencia[i]
+            elif lower_frequency is not None:
+                upper_frequency = frecuencia[i]
+                break
+            
+        if lower_frequency is not None and upper_frequency is not None:
+            bandwidth = upper_frequency - lower_frequency
+            st.write("Ancho de banda: {} Hz".format(bandwidth))
+        else:
+            st.write("No se encontró un ancho de banda de -3 dB por debajo del máximo en el rango de frecuencias proporcionado.")
+
+
+    
+        st.write("Margen de fase: {} grados".format(phase_margin))
+
+
+
+        st.write("Frecuencia de resonancia: {} Hz".format(resonance_frequency))
+
+        st.write("Frecuencia de corte (-3 dB por debajo del máximo): {} Hz".format(cutoff_frequency))
+        
+       
         
         st.pyplot(fig)
+
+
+
+
