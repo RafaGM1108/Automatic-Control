@@ -147,3 +147,7 @@ if coeff_str:
             st.write("La ecuación no tiene raíces reales en el plano complejo.")
     except Exception as e:
         st.write("Ocurrió un error al procesar los coeficientes. Asegúrate de que estén en el formato correcto separados por coma.")
+
+
+
+
