@@ -98,18 +98,13 @@ if uploaded_file is not None:
             st.write("Ancho de banda: {} Hz".format(bandwidth))
         else:
             st.write("No se encontró un ancho de banda de -3 dB por debajo del máximo en el rango de frecuencias proporcionado.")
-
-
     
         st.write("Margen de fase: {} grados".format(phase_margin))
-
-
 
         st.write("Frecuencia de resonancia: {} Hz".format(resonance_frequency))
 
         st.write("Frecuencia de corte (-3 dB por debajo del máximo): {} Hz".format(cutoff_frequency))
         
-       
         
         st.pyplot(fig)
 
